@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">BottomSheet2</string>
+    <string name="title_activity_sign_up_screen">SignUpScreen</string>
+</resources>
