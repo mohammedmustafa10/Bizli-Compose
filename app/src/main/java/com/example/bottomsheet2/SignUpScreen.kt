@@ -1,9 +1,13 @@
 package com.example.bottomsheet2
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Patterns
+import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
@@ -24,6 +28,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 
@@ -65,6 +70,8 @@ fun EmailTextField(modifier: Modifier = Modifier) {
     var showErrorName by remember { mutableStateOf(false) }
     var showErrorPassword by remember { mutableStateOf(false) }
     var isNamePasswordVisible by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { _->}
 
 
 
@@ -79,7 +86,7 @@ fun EmailTextField(modifier: Modifier = Modifier) {
                 value = email,
                 onValueChange = {
                     email = it
-                    isNamePasswordVisible=false
+                    isNamePasswordVisible = isValidEmail(email) && email.isNotEmpty()
                                 },
                 label = { Text(text = "Email") },
                 leadingIcon = {
@@ -134,6 +141,8 @@ fun EmailTextField(modifier: Modifier = Modifier) {
             if(isValidEmail(email) && email.isNotEmpty() && !showErrorEmail){
 
                 isNamePasswordVisible=true
+                showErrorEmail=false
+
 
 
                 Spacer(modifier = Modifier.padding(20.dp))
@@ -185,7 +194,9 @@ fun EmailTextField(modifier: Modifier = Modifier) {
                         Icon(Icons.Filled.Lock,
                             contentDescription = null
                         )} ,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = androidx.compose.ui.text.input.ImeAction.Go),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = androidx.compose.ui.text.input.ImeAction.Go),
                     keyboardActions = KeyboardActions
                         (onGo = {
                     }),
@@ -206,13 +217,14 @@ fun EmailTextField(modifier: Modifier = Modifier) {
                 )
 
                 if(showErrorPassword){
-                    Text(text = "Please enter a password",
-                        color=Color.Red,
-                        modifier = Modifier.padding(15.dp))
+                    if(password.isEmpty()){
+                        Text(text = "Please enter a password",
+                            color=Color.Red,
+                            modifier = Modifier.padding(15.dp))
+                    }
                 }
-
-
-            } else{isNamePasswordVisible=false}
+            }
+            else{ isNamePasswordVisible=false }
 
 
 
@@ -224,6 +236,10 @@ fun EmailTextField(modifier: Modifier = Modifier) {
                     showErrorEmail = email.isEmpty() || !isValidEmail(email)
                     showErrorName = isNamePasswordVisible
                     showErrorPassword = isNamePasswordVisible
+                    if(!showErrorEmail && name.isNotEmpty() && password.isNotEmpty()){
+                        val intent= Intent(context,HomeScreen::class.java)
+                        context.startActivity(intent)
+                    }
                 },
                 colors = ButtonDefaults.buttonColors(backgroundColor = colorResource(id = R.color.colorPrimary)),
                 modifier = Modifier

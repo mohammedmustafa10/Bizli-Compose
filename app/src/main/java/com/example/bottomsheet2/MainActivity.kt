@@ -7,13 +7,14 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -49,8 +50,6 @@ import androidx.compose.ui.unit.sp
 import com.example.bottomsheet2.ui.theme.BottomSheet2Theme
 import kotlinx.coroutines.launch
 import androidx.compose.material3.*
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -76,20 +75,162 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun BottomSheet() {
+
+    val modalSheetState= rememberModalBottomSheetState(
+        initialValue = ModalBottomSheetValue.Hidden,
+        skipHalfExpanded = true,
+    )
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
+    }
+
+    val scope= rememberCoroutineScope()
+    ChangeBarColors()
+
+    ModalBottomSheetLayout(
+        sheetState =modalSheetState,
+        sheetBackgroundColor = colorResource(id = R.color.colorPrimary),
+        sheetShape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp),
+        sheetElevation = 40.dp,
+        sheetContent = {
+
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(.7f),
+                contentAlignment = Alignment.Center
+            )
+
+            {
+                Column(modifier = Modifier
+                    .fillMaxSize()
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally ) {
+
+                    Image(modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp),
+                        painter = painterResource(id = R.drawable.bizli_logo),
+                        contentDescription ="bizlilogo")
+
+                    Spacer(modifier=Modifier.padding(15.dp))
+
+                    Text(text = "Sign In",
+                        fontSize = 35.sp,
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.headlineLarge,
+                        color= Color.White
+                    )
+
+                    Spacer(modifier=Modifier.padding(15.dp))
+
+                    Button(
+                        colors= ButtonDefaults.buttonColors(containerColor = Color.White),
+                        onClick = {
+                            val intent = Intent(context, SignUpScreen::class.java)
+                            launcher.launch(intent)},
+                        modifier = Modifier
+                            .fillMaxWidth(),
+
+                        ) { Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(10.dp)
+                    ) {
+                        Image(painter = painterResource(
+                            id = R.drawable.googlelogo),
+                            contentDescription = "google icon",
+                            modifier = Modifier
+                                .height(20.dp)
+                                .width(20.dp),
+                            alignment = Alignment.CenterStart,
+                            contentScale=ContentScale.Fit
+                        )
+
+                        Text(text = "Sign In With Google",
+                            color= colorResource(id = R.color.colorPrimary),
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    }
+
+                    Spacer(modifier=Modifier.padding(8.dp))
+
+                    Button(
+                        colors= ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.green)),
+                        onClick = {
+                            val intent = Intent(context, SignUpScreen::class.java)
+                            launcher.launch(intent)},
+                        modifier = Modifier
+                            .fillMaxWidth(),
+
+                        ) { Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(10.dp)
+                    ) {
+                        Image(painter = painterResource(
+                            id = R.drawable.mail_logo),
+                            contentDescription = "google icon",
+                            modifier = Modifier
+                                .height(20.dp)
+                                .width(20.dp),
+                            alignment = Alignment.CenterStart,
+                            contentScale=ContentScale.Fit
+                        )
+
+                        Text(text = "Sign In With Email",
+                            color= Color.White,
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    }
+
+                    Spacer(modifier =Modifier.padding(10.dp))
+
+                    Text(text = "Don't Have an Account ? Sign Up",
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.headlineMedium,
+                        color= Color.White,
+                        modifier = Modifier
+                            .clickable {
+                                val intent = Intent(context, SignUpScreen::class.java)
+                                launcher.launch(intent)
+                            }
+                    )
+                }
+            }
+        }) {
+        Column(modifier = Modifier
+            .background(
+                colorResource(R.color.colorPrimary)
+            )
+            .fillMaxSize()){
+
+            OnboardingScreen(modalSheetState = modalSheetState, scope = scope)
+
+        }
+    }
+}
+
+
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
-fun OnboardingScreen(sheetState:ModalBottomSheetState, scope: CoroutineScope) {
+fun OnboardingScreen(modalSheetState:ModalBottomSheetState, scope: CoroutineScope) {
     val onboardingPages = listOf(
         OnboardingData("CALCULATOR","Calculator built for your Business Type",R.drawable.daily_reports),
         OnboardingData("DAILY REPORTS","Get your Sales, Profits, Top Stocks & Cash Reports",R.drawable.daily_reports),
         OnboardingData("SALES COUNTER","Quickly make Bills with Inventory",R.drawable.expense),
         OnboardingData("ADD EXPENSE","Add and Manage all your Expenses in a Single App !",R.drawable.expense)
     )
-
-
     val pagerState = rememberPagerState()
-
-
 
     Column(
         modifier = Modifier
@@ -111,9 +252,7 @@ fun OnboardingScreen(sheetState:ModalBottomSheetState, scope: CoroutineScope) {
             val pageData = onboardingPages[page]
             OnboardingPage(pageTitle = pageData.title,
                 pageSubTitle = pageData.subTitle,
-                image = pageData.imageResourceId,
-                currentPage = page,
-                onBoardingPages = onboardingPages
+                image = pageData.imageResourceId
             )
         }
         PagerIndicator(items = onboardingPages, currentPage = pagerState.currentPage)
@@ -122,21 +261,30 @@ fun OnboardingScreen(sheetState:ModalBottomSheetState, scope: CoroutineScope) {
 
 
         Button(
+            colors= ButtonDefaults.buttonColors(containerColor = Color.White),
             onClick = {
                 scope.launch {
-                    if(sheetState.isVisible){
-                        sheetState.hide()
+                    if(modalSheetState.isVisible){
+                        modalSheetState.hide()
                     }
                     else{
-                        sheetState.show()
+                        //expand the sheet to the full screen
+                        modalSheetState.show()
 
                     }
                 }
 
             }, modifier = Modifier
-                .fillMaxWidth(0.5f)
-                .padding(16.dp)) {
-            Text(text = "Sign in to Bizli")
+                .padding(16.dp)
+                .fillMaxWidth()
+                .height(50.dp))
+        {
+            Text(text = "Sign in to Bizli",
+                color= colorResource(id = R.color.yellow),
+                fontSize = 20.sp,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+
+                )
         }
 
 
@@ -146,9 +294,7 @@ fun OnboardingScreen(sheetState:ModalBottomSheetState, scope: CoroutineScope) {
     @Composable
     fun OnboardingPage(pageTitle: String,
                        pageSubTitle:String,
-                       image:Int,
-                       currentPage: Int,
-                       onBoardingPages: List<OnboardingData>){
+                       image:Int){
         Card(
             modifier = Modifier
                 .fillMaxSize(),
@@ -196,96 +342,18 @@ fun OnboardingScreen(sheetState:ModalBottomSheetState, scope: CoroutineScope) {
         }
     }
 
-    @OptIn(ExperimentalMaterialApi::class)
-    @Composable
-    fun BottomSheet() {
+@Composable
+fun ChangeBarColors() {
 
-        //val sheetState= rememberBottomSheetState(initialValue = BottomSheetValue.Collapsed)
-        val modalSheetState= rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
-        val context = LocalContext.current
-        val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        }
+    rememberSystemUiController().apply {
+        setNavigationBarColor(color = colorResource(id = R.color.colorPrimary), darkIcons = true)
+        setStatusBarColor(color = colorResource(id = R.color.colorPrimary), darkIcons = true)
+        setSystemBarsColor(color = colorResource(id = R.color.colorPrimary), darkIcons = true)
+    }
 
-        val scope= rememberCoroutineScope()
-        val sheetVisibleState=remember{mutableStateOf(false)}
-        ChangeBarColors()
-
-        ModalBottomSheetLayout(
-            sheetState =modalSheetState,
-            sheetBackgroundColor = colorResource(id = R.color.colorPrimary),
-            sheetShape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp),
-            sheetElevation = 40.dp,
-            sheetContent = {
-
-                Box(modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(.7f),
-                    contentAlignment = Alignment.Center
-                )
-
-                {
-                    Column(modifier = Modifier
-                        .fillMaxSize()
-                        .fillMaxWidth()
-                        .padding(20.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally ) {
-
-                        Image(modifier = Modifier
-                            .fillMaxWidth()
-                            .height(150.dp),
-                            painter = painterResource(id = R.drawable.bizli_logo),
-                            contentDescription ="bizlilogo")
-
-                        Spacer(modifier=Modifier.padding(15.dp))
-
-                        Text(text = "Sign In",
-                            fontSize = 35.sp,
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.headlineLarge,
-                            color= Color.White
-                        )
+}
 
 
-                        Spacer(modifier=Modifier.padding(15.dp))
-
-                        Button(
-                            colors= ButtonDefaults.buttonColors(containerColor = Color.White),
-                            contentPadding = PaddingValues(15.dp),
-                            onClick = {val intent = Intent(context, SignUpScreen::class.java)
-                                launcher.launch(intent)},
-                            modifier = Modifier
-                                .fillMaxWidth(),
-
-                        ) {
-
-                                Image(painter = painterResource(id = R.drawable.googlelogo),
-                                    contentDescription = "google icon",
-                                    modifier = Modifier
-                                        .height(20.dp)
-                                        .width(20.dp),
-                                    alignment = Alignment.CenterStart,
-                                    contentScale = ContentScale.Crop
-                                )
-
-                                Text(text = "Sign In With Google",
-                                    color= colorResource(id = R.color.colorPrimary),
-                                    fontSize = 16.sp,
-                                )
-                        }
-                    }
-                }
-            }) {
-            Column(modifier = Modifier
-                .background(
-                    colorResource(R.color.colorPrimary)
-                )
-                .fillMaxSize()){
-
-                OnboardingScreen(sheetState = modalSheetState, scope = scope)
-
-                }
-            }
-        }
 
 
 @Composable
@@ -302,7 +370,7 @@ fun OnboardingScreen(sheetState:ModalBottomSheetState, scope: CoroutineScope) {
 
     @Composable
     fun Indicator(isSelected: Boolean) {
-        val width = animateDpAsState(targetValue = if (isSelected) 40.dp else 10.dp)
+        val width = animateDpAsState(targetValue = if (isSelected) 40.dp else 10.dp, label = "")
         val selectedColor= colorResource(id = R.color.yellow)
         val unSelectedColor= Color.White
         val color= if(isSelected) selectedColor else unSelectedColor
@@ -317,16 +385,7 @@ fun OnboardingScreen(sheetState:ModalBottomSheetState, scope: CoroutineScope) {
         )
     }
 
-@Composable
-fun ChangeBarColors() {
 
-    rememberSystemUiController().apply {
-        setNavigationBarColor(color = colorResource(id = R.color.colorPrimary), darkIcons = true)
-        setStatusBarColor(color = colorResource(id = R.color.colorPrimary), darkIcons = true)
-        setSystemBarsColor(color = colorResource(id = R.color.colorPrimary), darkIcons = true)
-    }
-
-}
 
 
 
